@@ -1,4 +1,4 @@
-# IT-Forum24-Vortrag-B0ADF488-ECBE-F011-BBD3-7CED8D5CFF17
+# IT-Forum24-Vortrag-00000000-0000-0000-0000-000000000000
 
 | Eigenschaft | Wert |
 |---|---|

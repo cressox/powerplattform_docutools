@@ -1,14 +1,14 @@
-# PMO-KontaktlisteUpdaten-00000000-0000-0000-0000-000000000000
+# alleereignissespiegeln-00000000-0000-0000-0000-000000000000
 
 | Eigenschaft | Wert |
 |---|---|
 | Typ | Cloud Automated |
 | Status | Entwurf |
 | Beschreibung | – |
-| Trigger | Recurrence |
-| Aktionen | 10 |
-| Konnektoren | 2 |
-| Variablen | 1 |
+| Trigger | Request |
+| Aktionen | 6 |
+| Konnektoren | 1 |
+| Variablen | 0 |
 
 ## Seiten
 

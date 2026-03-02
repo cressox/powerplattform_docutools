@@ -1,4 +1,4 @@
-# PMO-KontaktlisteUpdaten-00000000-0000-0000-0000-000000000000
+# EreignisnderndurchM365-Sprechstundennderung-00000000-0000-0000-0000-000000000000
 
 | Eigenschaft | Wert |
 |---|---|
@@ -6,9 +6,9 @@
 | Status | Entwurf |
 | Beschreibung | – |
 | Trigger | Recurrence |
-| Aktionen | 10 |
-| Konnektoren | 2 |
-| Variablen | 1 |
+| Aktionen | 6 |
+| Konnektoren | 1 |
+| Variablen | 3 |
 
 ## Seiten
 

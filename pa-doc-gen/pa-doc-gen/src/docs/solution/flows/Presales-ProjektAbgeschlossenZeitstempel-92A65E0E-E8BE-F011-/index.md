@@ -1,4 +1,4 @@
-# Presales-ProjektAbgeschlossenZeitstempel-92A65E0E-E8BE-F011-BBD3-7CED8D5CFF17
+# Presales-ProjektAbgeschlossenZeitstempel-00000000-0000-0000-0000-000000000000
 
 | Eigenschaft | Wert |
 |---|---|

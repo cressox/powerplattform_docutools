@@ -1,14 +1,14 @@
 # Solution-Uebersicht
 
-## perosnal_prod_flows
+## IT
 
 | Eigenschaft | Wert |
 |---|---|
-| Unique Name | perosnal_prod_flows |
-| Anzeigename | perosnal_prod_flows |
+| Unique Name | IT |
+| Anzeigename | IT |
 | Version | 1.0.0.1 |
-| Publisher | Bechtle Weimar |
-| Publisher-Praefix | wmr |
+| Publisher | BKKAkademie |
+| Publisher-Praefix | bkk |
 | Managed | Nein |
 
 ### Beschreibung

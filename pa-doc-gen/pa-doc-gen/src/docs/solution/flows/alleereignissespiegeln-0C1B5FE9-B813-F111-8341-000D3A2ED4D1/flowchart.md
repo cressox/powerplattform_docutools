@@ -4,30 +4,30 @@
 
 ```mermaid
 flowchart TD
-    TRIGGER(["⚡ Wenn_ein_Element_erstellt_oder_geändert_wird\n[SharePoint]\n(Recurrence)"])
-    Variable_initialisieren_Titel_9920["Variable_initialisieren_-_Titel"]
-    TRIGGER --> Variable_initialisieren_Titel_9920
-    Bedingung_ist_abgesagt_7088{{"Bedingung_-_ist_abgesagt"}}
-    Variable_initialisieren_Titel_9920 --> Bedingung_ist_abgesagt_7088
-    Bedingung_ist_abgesagt_Ja_6640(["Bedingung_-_ist_abgesagt – Ja"])
-    Bedingung_ist_abgesagt_7088 -->|Ja| Bedingung_ist_abgesagt_Ja_6640
-    Variable_festlegen_Titel_6192["Variable_festlegen_-Titel"]
-    Bedingung_ist_abgesagt_Ja_6640 --> Variable_festlegen_Titel_6192
-    Variable_festlegen_Titel_4848["Variable_festlegen_-Titel"]
-    Bedingung_ist_abgesagt_7088 --> Variable_festlegen_Titel_4848
-    Element_aktualisieren_Ereignis_7536["Element_aktualisieren_-_Ereignis\n[SharePoint]"]
-    Variable_festlegen_Titel_6192 --> Element_aktualisieren_Ereignis_7536
-    Variable_festlegen_Titel_4848 --> Element_aktualisieren_Ereignis_7536
+    TRIGGER(["⚡ manual\n(Request)"])
+    Elemente_abrufen_alle_ereignisse_7984["Elemente_abrufen_-_alle_ereignisse\n[SharePoint]"]
+    TRIGGER --> Elemente_abrufen_alle_ereignisse_7984
+    For_each_5968[["For_each"]]
+    Elemente_abrufen_alle_ereignisse_7984 --> For_each_5968
+    Bedingung_nicht_gel_scht_6864{{"Bedingung_-_nicht_gelöscht"}}
+    For_each_5968 --> Bedingung_nicht_gel_scht_6864
+    Bedingung_nicht_gel_scht_Ja_5072(["Bedingung_-_nicht_gelöscht – Ja"])
+    Bedingung_nicht_gel_scht_6864 -->|Ja| Bedingung_nicht_gel_scht_Ja_5072
+    Element_erstellen_M365_Sprechstunden_4080["Element_erstellen_-_M365-Sprechstunden\n[SharePoint]"]
+    Bedingung_nicht_gel_scht_Ja_5072 --> Element_erstellen_M365_Sprechstunden_4080
+    Element_erstellen_M365_Sprechstunden_6416["Element_erstellen_-_M365-Sprechstunden\n[SharePoint]"]
+    Bedingung_nicht_gel_scht_6864 --> Element_erstellen_M365_Sprechstunden_6416
     FLOW_END(["Ende"])
-    Element_aktualisieren_Ereignis_7536 --> FLOW_END
+    Element_erstellen_M365_Sprechstunden_4080 --> FLOW_END
+    Element_erstellen_M365_Sprechstunden_6416 --> FLOW_END
 
     class TRIGGER trigger
-    class Variable_initialisieren_Titel_9920 variable
-    class Bedingung_ist_abgesagt_7088 condition
-    class Bedingung_ist_abgesagt_Ja_6640 branch_true
-    class Variable_festlegen_Titel_6192 variable
-    class Variable_festlegen_Titel_4848 variable
-    class Element_aktualisieren_Ereignis_7536 connector
+    class Elemente_abrufen_alle_ereignisse_7984 connector
+    class For_each_5968 loop
+    class Bedingung_nicht_gel_scht_6864 condition
+    class Bedingung_nicht_gel_scht_Ja_5072 branch_true
+    class Element_erstellen_M365_Sprechstunden_4080 connector
+    class Element_erstellen_M365_Sprechstunden_6416 connector
     class FLOW_END terminate
 
     %% Styles

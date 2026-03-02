@@ -4,30 +4,14 @@
 
 ```mermaid
 flowchart TD
-    TRIGGER(["⚡ Wenn_ein_Element_erstellt_oder_geändert_wird\n[SharePoint]\n(Recurrence)"])
-    Variable_initialisieren_Titel_9920["Variable_initialisieren_-_Titel"]
-    TRIGGER --> Variable_initialisieren_Titel_9920
-    Bedingung_ist_abgesagt_7088{{"Bedingung_-_ist_abgesagt"}}
-    Variable_initialisieren_Titel_9920 --> Bedingung_ist_abgesagt_7088
-    Bedingung_ist_abgesagt_Ja_6640(["Bedingung_-_ist_abgesagt – Ja"])
-    Bedingung_ist_abgesagt_7088 -->|Ja| Bedingung_ist_abgesagt_Ja_6640
-    Variable_festlegen_Titel_6192["Variable_festlegen_-Titel"]
-    Bedingung_ist_abgesagt_Ja_6640 --> Variable_festlegen_Titel_6192
-    Variable_festlegen_Titel_4848["Variable_festlegen_-Titel"]
-    Bedingung_ist_abgesagt_7088 --> Variable_festlegen_Titel_4848
-    Element_aktualisieren_Ereignis_7536["Element_aktualisieren_-_Ereignis\n[SharePoint]"]
-    Variable_festlegen_Titel_6192 --> Element_aktualisieren_Ereignis_7536
-    Variable_festlegen_Titel_4848 --> Element_aktualisieren_Ereignis_7536
+    TRIGGER(["⚡ Wenn_ein_Element_erstellt_wird\n[SharePoint]\n(Recurrence)"])
+    Element_erstellen_M365_Sprechstunden_7312["Element_erstellen_-_M365-Sprechstunden\n[SharePoint]"]
+    TRIGGER --> Element_erstellen_M365_Sprechstunden_7312
     FLOW_END(["Ende"])
-    Element_aktualisieren_Ereignis_7536 --> FLOW_END
+    Element_erstellen_M365_Sprechstunden_7312 --> FLOW_END
 
     class TRIGGER trigger
-    class Variable_initialisieren_Titel_9920 variable
-    class Bedingung_ist_abgesagt_7088 condition
-    class Bedingung_ist_abgesagt_Ja_6640 branch_true
-    class Variable_festlegen_Titel_6192 variable
-    class Variable_festlegen_Titel_4848 variable
-    class Element_aktualisieren_Ereignis_7536 connector
+    class Element_erstellen_M365_Sprechstunden_7312 connector
     class FLOW_END terminate
 
     %% Styles

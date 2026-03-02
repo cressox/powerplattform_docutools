@@ -1,4 +1,4 @@
-# Empfang-checkout-visitor-89B9012C-FDBE-F011-BBD3-7CED8D5CFF17
+# Empfang-checkout-visitor-00000000-0000-0000-0000-000000000000
 
 | Eigenschaft | Wert |
 |---|---|
