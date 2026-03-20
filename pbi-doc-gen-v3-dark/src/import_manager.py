@@ -33,7 +33,7 @@ from .pbitools_parser import pbitools_available, parse_pbix_with_pbitools
 class ImportOptions:
     """Steuerung des Import-Verhaltens."""
     merge_mode: str = "replace"             # "replace" | "merge" | "append"
-    import_measures_as_kpis: bool = False    # Measures auch als KPIs anlegen?
+    import_measures_as_kpis: bool = True     # Measures auch als KPIs anlegen?
     skip_hidden_tables: bool = True          # Versteckte Tabellen ignorieren?
     skip_hidden_measures: bool = False
     detect_table_types: bool = True          # Heuristik fuer Fakt/Dim-Erkennung
@@ -429,7 +429,7 @@ def import_file(
         if sources:
             merged, skip_count = _merge_list(
                 project.data_sources, sources,
-                mode, "connection_info",
+                mode, "name",
             )
             project.data_sources = merged
             imported["data_sources"] = len(sources)
@@ -445,6 +445,30 @@ def import_file(
     if bim_result and bim_result.date_logic_notes:
         if mode == "replace" or not project.data_model.date_logic_notes:
             project.data_model.date_logic_notes = bim_result.date_logic_notes
+
+    # ── KPIs aus Report-Pages (KPI-Visuals) ─────────
+    if pbix_result and pbix_result.report_pages:
+        kpi_from_visuals = 0
+        existing_kpi_names = {k.name.lower() for k in project.kpis}
+        for page in pbix_result.report_pages:
+            for v in page.visuals:
+                desc_lower = v.description.lower() if v.description else ""
+                if "kpi" in desc_lower or "kpi" in (v.name or "").lower():
+                    kpi_name = v.name or f"KPI ({page.page_name})"
+                    if kpi_name.lower() not in existing_kpi_names:
+                        field_info = ""
+                        if "Felder:" in (v.description or ""):
+                            field_info = v.description.split("Felder:")[-1].strip()
+                        project.kpis.append(KPI(
+                            name=kpi_name,
+                            business_description=f"KPI-Visual auf Seite '{page.page_name}'",
+                            technical_definition=field_info,
+                            granularity=page.page_name,
+                        ))
+                        existing_kpi_names.add(kpi_name.lower())
+                        kpi_from_visuals += 1
+        if kpi_from_visuals:
+            imported["kpis"] = imported.get("kpis", 0) + kpi_from_visuals
 
     report.imported = imported
     report.skipped = skipped

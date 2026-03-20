@@ -25,6 +25,10 @@ from .prompts import (
     prompt_report_page, prompt_governance, prompt_change_log_entry,
 )
 from .importers import import_measures_from_file, import_queries_from_file, export_measures_to_file
+from .ai_metadata import (
+    export_metadata_to_file, export_prompt_to_file,
+    import_enriched_metadata, format_import_summary,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -80,14 +84,18 @@ def _load_or_new() -> Project:
 
 def import_export_menu(project: Project) -> None:
     print("""
-  ┌─────────────────────────────────────┐
-  │  Import / Export                     │
-  ├─────────────────────────────────────┤
-  │  1  Measures aus Datei importieren  │
-  │  2  Queries aus Datei importieren   │
-  │  3  Measures in Datei exportieren   │
-  │  0  Zurück                          │
-  └─────────────────────────────────────┘""")
+  ┌──────────────────────────────────────────────────┐
+  │  Import / Export                                  │
+  ├──────────────────────────────────────────────────┤
+  │  1  Measures aus Datei importieren               │
+  │  2  Queries aus Datei importieren                │
+  │  3  Measures in Datei exportieren                │
+  │  ─  ─  ─  ─  ─  ─  ─  ─  ─  ─  ─               │
+  │  4  🤖 AI-Metadaten exportieren (JSON)            │
+  │  5  🤖 AI-Prompt exportieren (zum Einfügen)       │
+  │  6  🤖 AI-angereicherte Daten importieren         │
+  │  0  Zurück                                       │
+  └──────────────────────────────────────────────────┘""")
     choice = input("\n  Auswahl: ").strip()
 
     if choice == "1":
@@ -115,6 +123,37 @@ def import_export_menu(project: Project) -> None:
         path = Path(fp) if fp else Path("data/measures_export.txt")
         export_measures_to_file(project.measures, path)
         print(f"  ✅ {len(project.measures)} Measure(s) exportiert nach {path}.")
+
+    elif choice == "4":
+        fp = input("  Ziel-Dateipfad [data/ai_metadata_export.json]: ").strip()
+        path = Path(fp) if fp else Path("data/ai_metadata_export.json")
+        result = export_metadata_to_file(project, path)
+        print(f"  ✅ AI-Metadaten exportiert nach {result}.")
+        print("     Enthält JSON + AI-Prompt. Öffne die Datei und kopiere")
+        print("     den Inhalt in Claude / ChatGPT.")
+
+    elif choice == "5":
+        fp = input("  Ziel-Dateipfad [data/ai_prompt.txt]: ").strip()
+        path = Path(fp) if fp else Path("data/ai_prompt.txt")
+        result = export_prompt_to_file(project, path)
+        print(f"  ✅ AI-Prompt exportiert nach {result}.")
+        print("     Kopiere den gesamten Inhalt in Claude / ChatGPT.")
+        print("     Die KI gibt ein angereichertes JSON zurück.")
+        print("     Speichere dieses als .json und importiere es mit Option 6.")
+
+    elif choice == "6":
+        fp = input("  Dateipfad zur angereicherten JSON-Datei: ").strip()
+        path = Path(fp)
+        if not path.exists():
+            print(f"  ⚠  Datei nicht gefunden: {path}")
+            return
+        overwrite = input("  Bestehende Beschreibungen überschreiben? (j/N): ").strip().lower()
+        overwrite = overwrite in ("j", "ja", "y")
+        try:
+            summary = import_enriched_metadata(path, project, overwrite_existing=overwrite)
+            print(f"\n  {format_import_summary(summary)}")
+        except Exception as e:
+            print(f"  ❌ Import fehlgeschlagen: {e}")
 
     elif choice == "0":
         return

@@ -1,13 +1,13 @@
 # Trigger
 
-## Wenn_ein_Element_erstellt_oder_geändert_wird
+## Recurrence
 
 | Eigenschaft | Wert |
 |---|---|
 | Typ | Recurrence |
-| Connector | SharePoint |
-| Frequenz | Minute |
-| Intervall | 5 |
+| Connector |  |
+| Frequenz | Day |
+| Intervall | 1 |
 | Zeitzone |  |
 | Authentifizierung |  |
 

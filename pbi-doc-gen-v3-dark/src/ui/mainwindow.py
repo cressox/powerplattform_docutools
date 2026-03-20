@@ -3,7 +3,7 @@ Main window – wires all pages, sidebar, toolbar, and actions together.
 """
 
 from __future__ import annotations
-import os, sys, traceback
+import json, os, sys, traceback
 from pathlib import Path
 from typing import Optional
 
@@ -40,6 +40,10 @@ try:
         import_file, preview_import, detect_file_type,
     )
     from ..pbitools_parser import pbitools_available
+    from ..ai_metadata import (
+        export_metadata_to_file, export_prompt_to_file,
+        import_enriched_metadata, format_import_summary,
+    )
 except ImportError:
     project_root = Path(__file__).resolve().parents[2]
     if str(project_root) not in sys.path:
@@ -67,6 +71,10 @@ except ImportError:
         import_file, preview_import, detect_file_type,
     )
     from src.pbitools_parser import pbitools_available
+    from src.ai_metadata import (
+        export_metadata_to_file, export_prompt_to_file,
+        import_enriched_metadata, format_import_summary,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -1270,6 +1278,17 @@ class MainWindow(QMainWindow):
         self.btn_pdf.setCursor(Qt.PointingHandCursor); self.btn_pdf.clicked.connect(self._gen_pdf)
         tbl.addWidget(self.btn_pdf)
 
+        # AI Metadata buttons
+        self.btn_ai_export = QPushButton("🤖  AI-Export")
+        self.btn_ai_export.setCursor(Qt.PointingHandCursor)
+        self.btn_ai_export.clicked.connect(self._ai_export)
+        tbl.addWidget(self.btn_ai_export)
+
+        self.btn_ai_import = QPushButton("🤖  AI-Import")
+        self.btn_ai_import.setCursor(Qt.PointingHandCursor)
+        self.btn_ai_import.clicked.connect(self._ai_import)
+        tbl.addWidget(self.btn_ai_import)
+
         tbl.addStretch()
         self.toast_lbl = QLabel(""); self.toast_lbl.setStyleSheet(f"color:{SUCCESS}; font-size:12px;")
         tbl.addWidget(self.toast_lbl)
@@ -1501,6 +1520,145 @@ class MainWindow(QMainWindow):
         except Exception as e:
             prog.close()
             QMessageBox.critical(self, "PDF-Fehler", f"{e}\n\n{traceback.format_exc()}")
+
+    # ── AI Metadata Export / Import ───────────────────────────
+
+    def _ai_export(self):
+        """Export project metadata as JSON for AI enrichment."""
+        self._collect_all()
+
+        from PySide6.QtWidgets import QDialog, QDialogButtonBox, QRadioButton, QButtonGroup
+        dlg = QDialog(self)
+        dlg.setWindowTitle("🤖  AI-Metadaten exportieren")
+        dlg.setMinimumWidth(460)
+        dlg.setStyleSheet(f"background: {BG_BASE}; color: {TEXT_PRIMARY};")
+        lay = QVBoxLayout(dlg)
+        lay.setSpacing(12)
+        lay.setContentsMargins(20, 20, 20, 20)
+
+        info = QLabel(
+            "Exportiert alle Berichts-Metadaten als JSON zusammen mit einem\n"
+            "AI-Prompt. Kopiere den Inhalt in Claude / ChatGPT, um\n"
+            "Beschreibungen automatisch generieren zu lassen.\n\n"
+            "Das angereicherte JSON kannst du anschliessend per\n"
+            "'AI-Import' zurueck importieren."
+        )
+        info.setStyleSheet(f"color: {TEXT_SECONDARY}; font-size: 12px;")
+        info.setWordWrap(True)
+        lay.addWidget(info)
+
+        # Export format choice
+        fmt_grp = QGroupBox("Export-Format")
+        fmt_lay = QVBoxLayout(fmt_grp)
+        btn_group = QButtonGroup(dlg)
+        rb_json = QRadioButton("JSON-Datei (Metadaten + Prompt)")
+        rb_json.setChecked(True)
+        rb_prompt = QRadioButton("Prompt-Textdatei (zum Einfuegen in AI-Chat)")
+        btn_group.addButton(rb_json, 0)
+        btn_group.addButton(rb_prompt, 1)
+        fmt_lay.addWidget(rb_json)
+        fmt_lay.addWidget(rb_prompt)
+        lay.addWidget(fmt_grp)
+
+        # Buttons
+        btn_lay = QHBoxLayout()
+        btn_lay.addStretch()
+        btn_ok = QPushButton("Exportieren")
+        btn_ok.setObjectName("primary")
+        btn_ok.setCursor(Qt.PointingHandCursor)
+        btn_ok.clicked.connect(dlg.accept)
+        btn_lay.addWidget(btn_ok)
+        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel.setCursor(Qt.PointingHandCursor)
+        btn_cancel.clicked.connect(dlg.reject)
+        btn_lay.addWidget(btn_cancel)
+        lay.addLayout(btn_lay)
+
+        if dlg.exec() != QDialog.Accepted:
+            return
+
+        is_prompt = btn_group.checkedId() == 1
+
+        if is_prompt:
+            default_name = "ai_prompt.txt"
+            filter_str = "Text (*.txt);;Alle (*)"
+        else:
+            default_name = "ai_metadata_export.json"
+            filter_str = "JSON (*.json);;Alle (*)"
+
+        path, _ = QFileDialog.getSaveFileName(
+            self, "AI-Export speichern",
+            str(Path.cwd() / "data" / default_name),
+            filter_str,
+        )
+        if not path:
+            return
+
+        try:
+            if is_prompt:
+                result = export_prompt_to_file(self.project, Path(path))
+            else:
+                result = export_metadata_to_file(self.project, Path(path))
+
+            reply = QMessageBox.information(
+                self, "AI-Export erfolgreich",
+                f"Exportiert nach:\n{result}\n\n"
+                "Oeffne die Datei, kopiere den Inhalt in einen AI-Chat\n"
+                "(z.B. Claude Sonnet) und importiere das Ergebnis\n"
+                "ueber den 'AI-Import' Button zurueck.\n\n"
+                "Datei jetzt oeffnen?",
+                QMessageBox.Open | QMessageBox.Ok, QMessageBox.Ok,
+            )
+            if reply == QMessageBox.Open:
+                if sys.platform == "win32":
+                    os.startfile(str(result))
+            self._toast("AI-Metadaten exportiert")
+        except Exception as e:
+            QMessageBox.critical(self, "Export-Fehler", f"Export fehlgeschlagen:\n{e}")
+
+    def _ai_import(self):
+        """Import AI-enriched metadata JSON back into the project."""
+        path, _ = QFileDialog.getOpenFileName(
+            self, "AI-angereichertes JSON importieren",
+            str(Path.cwd() / "data"),
+            "JSON (*.json);;Alle (*)",
+        )
+        if not path:
+            return
+
+        # Ask about overwrite
+        overwrite = QMessageBox.question(
+            self, "Überschreiben?",
+            "Sollen bestehende (nicht-leere) Beschreibungen\n"
+            "durch die AI-generierten ersetzt werden?\n\n"
+            "  Ja  = Alle Felder ueberschreiben\n"
+            "  Nein = Nur leere Felder befuellen",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No,
+        ) == QMessageBox.Yes
+
+        try:
+            summary = import_enriched_metadata(
+                Path(path), self.project, overwrite_existing=overwrite,
+            )
+            self._refresh_all()
+            self.pg_dash.refresh(self.project, str(self.project_path))
+
+            text = format_import_summary(summary)
+            QMessageBox.information(self, "AI-Import abgeschlossen", text)
+            self._toast("AI-Daten importiert")
+            self.statusBar().showMessage("AI-angereicherte Metadaten importiert")
+        except json.JSONDecodeError as e:
+            QMessageBox.critical(
+                self, "JSON-Fehler",
+                f"Die Datei enthält kein gültiges JSON:\n{e}\n\n"
+                "Stelle sicher, dass die AI-Ausgabe reines JSON ist\n"
+                "(kein Markdown, keine Code-Blöcke).",
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Import-Fehler",
+                f"Import fehlgeschlagen:\n{e}\n\n{traceback.format_exc()}",
+            )
 
 
 # ══════════════════════════════════════════════════════════════════

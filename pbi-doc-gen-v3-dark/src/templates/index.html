@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power BI Documentation Generator</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <h2>PBI Doc Gen</h2>
+      <span class="version">Web Edition</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" data-page="dashboard"><span class="icon">📊</span> Dashboard</li>
+      <li class="nav-item" data-page="meta"><span class="icon">📋</span> Metadaten</li>
+      <li class="nav-item" data-page="ci_branding"><span class="icon">🎨</span> CI / Branding</li>
+      <li class="nav-item" data-page="kpis"><span class="icon">🎯</span> KPIs</li>
+      <li class="nav-item" data-page="data_sources"><span class="icon">🗄️</span> Datenquellen</li>
+      <li class="nav-item" data-page="power_queries"><span class="icon">⚙️</span> Power Query</li>
+      <li class="nav-item" data-page="data_model"><span class="icon">🔗</span> Datenmodell</li>
+      <li class="nav-item" data-page="measures"><span class="icon">📐</span> Measures</li>
+      <li class="nav-item" data-page="report_pages"><span class="icon">📄</span> Berichtsseiten</li>
+      <li class="nav-item" data-page="governance"><span class="icon">🛡️</span> Governance</li>
+      <li class="nav-item" data-page="permissions"><span class="icon">🔐</span> Berechtigungen</li>
+      <li class="nav-item" data-page="storage_structure"><span class="icon">📁</span> Ablagestruktur</li>
+      <li class="nav-item" data-page="naming_conventions"><span class="icon">🏷️</span> Namenskonzept</li>
+      <li class="nav-item" data-page="change_guidance"><span class="icon">📝</span> Änderungshinweise</li>
+      <li class="nav-item" data-page="change_log"><span class="icon">📜</span> Änderungsprotokoll</li>
+      <li class="nav-item" data-page="preview"><span class="icon">👁️</span> Vorschau</li>
+      <li class="nav-item" data-page="export"><span class="icon">📤</span> Export</li>
+    </ul>
+  </nav>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main id="content">
+    <!-- TOOLBAR -->
+    <header id="toolbar">
+      <div class="toolbar-left">
+        <button id="btn-sidebar-toggle" class="btn-icon" title="Sidebar ein-/ausblenden">☰</button>
+        <h1 id="page-title">Dashboard</h1>
+      </div>
+      <div class="toolbar-right">
+        <button id="btn-save" class="btn btn-primary" title="Projekt speichern">💾 Speichern</button>
+        <button id="btn-load-file" class="btn btn-secondary" title="Projekt laden">📂 Laden</button>
+        <button id="btn-import" class="btn btn-accent" title="PBIX / BIM importieren">📥 Import</button>
+        <input type="file" id="file-load" accept=".yml,.yaml,.json" style="display:none">
+        <input type="file" id="file-import" accept=".pbix,.bim,.pbit,.json" style="display:none">
+      </div>
+    </header>
+
+    <div id="page-container">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <section class="page active" id="page-dashboard">
+        <div class="dashboard-grid">
+          <div class="card card-wide">
+            <h3>Willkommen</h3>
+            <p>Power BI Documentation Generator – Web Edition. Erstelle umfassende, modulare Dokumentation für Power BI Berichte.</p>
+            <p class="hint">Lade ein bestehendes Projekt oder importiere eine PBIX-Datei, um zu beginnen.</p>
+          </div>
+          <div class="card" id="dash-meta">
+            <h4>📋 Bericht</h4>
+            <div class="dash-value" id="dash-report-name">–</div>
+            <div class="dash-label">Version <span id="dash-version">–</span></div>
+          </div>
+          <div class="card" id="dash-sources">
+            <h4>🗄️ Datenquellen</h4>
+            <div class="dash-value" id="dash-source-count">0</div>
+          </div>
+          <div class="card" id="dash-measures-card">
+            <h4>📐 Measures</h4>
+            <div class="dash-value" id="dash-measure-count">0</div>
+          </div>
+          <div class="card" id="dash-pages-card">
+            <h4>📄 Seiten</h4>
+            <div class="dash-value" id="dash-page-count">0</div>
+          </div>
+          <div class="card" id="dash-perm">
+            <h4>🔐 Berechtigungen</h4>
+            <div class="dash-value" id="dash-perm-count">0</div>
+            <div class="dash-label">Einträge</div>
+          </div>
+          <div class="card card-wide" id="dash-structure">
+            <h4>📁 Wo liegt was?</h4>
+            <table class="mini-table" id="dash-structure-table">
+              <tr><th>Element</th><th>Ort</th></tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ METADATEN ═══ -->
+      <section class="page" id="page-meta">
+        <h2>Projekt-Metadaten</h2>
+        <div class="form-grid">
+          <label>Berichtsname</label><input type="text" data-bind="meta.report_name">
+          <label>Kurzbeschreibung</label><textarea data-bind="meta.short_description" rows="3"></textarea>
+          <label>Zielgruppe</label><input type="text" data-bind="meta.audience">
+          <label>Eigentümer</label><input type="text" data-bind="meta.owner">
+          <label>Autor</label><input type="text" data-bind="meta.author">
+          <label>Version</label><input type="text" data-bind="meta.version">
+          <label>Datum</label><input type="date" data-bind="meta.date">
+          <label>Power BI Service URL</label><input type="text" data-bind="meta.powerbi_service_url">
+          <label>SharePoint Ordner URL</label><input type="text" data-bind="meta.sharepoint_folder_url">
+        </div>
+        <h3>Umgebungen</h3>
+        <div id="env-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addEnvironment()">+ Umgebung hinzufügen</button>
+      </section>
+
+      <!-- ═══ CI / BRANDING ═══ -->
+      <section class="page" id="page-ci_branding">
+        <h2>CI / Branding</h2>
+        <div class="form-grid">
+          <label>Firmenname</label><input type="text" data-bind="ci_branding.company_name">
+          <label>Primärfarbe</label><input type="color" data-bind="ci_branding.primary_color">
+          <label>Akzentfarbe</label><input type="color" data-bind="ci_branding.accent_color">
+          <label>Sekundärfarbe</label><input type="color" data-bind="ci_branding.secondary_color">
+          <label>Schriftart</label><input type="text" data-bind="ci_branding.font_name" placeholder="z.B. Arial, Segoe UI">
+          <label>Fußzeile</label><input type="text" data-bind="ci_branding.footer_text">
+          <label>Kopfzeile</label><input type="text" data-bind="ci_branding.header_text">
+          <label>Cover-Untertitel</label><input type="text" data-bind="ci_branding.cover_subtitle">
+          <label>Vertraulichkeitsvermerk</label><textarea data-bind="ci_branding.confidentiality_notice" rows="2"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ KPIs ═══ -->
+      <section class="page" id="page-kpis">
+        <h2>KPIs & Kennzahlen</h2>
+        <div id="kpi-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('kpis')">+ KPI hinzufügen</button>
+      </section>
+
+      <!-- ═══ DATENQUELLEN ═══ -->
+      <section class="page" id="page-data_sources">
+        <h2>Datenquellen</h2>
+        <p class="section-info">Umfassende Dokumentation aller Datenquellen: Herkunft, Verbindungsart, Verantwortlichkeiten, Qualität und Sensitivität.</p>
+        <div id="data_sources-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('data_sources')">+ Datenquelle hinzufügen</button>
+      </section>
+
+      <!-- ═══ POWER QUERY ═══ -->
+      <section class="page" id="page-power_queries">
+        <h2>Power Query (M) – Abfragen</h2>
+        <div id="power_queries-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('power_queries')">+ Abfrage hinzufügen</button>
+      </section>
+
+      <!-- ═══ DATENMODELL ═══ -->
+      <section class="page" id="page-data_model">
+        <h2>Datenmodell</h2>
+        <h3>ER-Diagramm</h3>
+        <div class="card card-wide" id="dm-mermaid-container" style="min-height:100px;">
+          <div id="dm-mermaid-output"><p class="hint">Speichere Tabellen und Beziehungen, dann wird hier das Diagramm angezeigt.</p></div>
+          <button class="btn btn-small" style="margin-top:12px;" onclick="renderDataModelDiagram()">🔄 Diagramm aktualisieren</button>
+        </div>
+        <h3>Tabellen</h3>
+        <div id="dm-tables-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addDmTable()">+ Tabelle hinzufügen</button>
+        <h3>Beziehungen</h3>
+        <div id="dm-rels-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addDmRel()">+ Beziehung hinzufügen</button>
+        <h3>Weitere Angaben</h3>
+        <div class="form-grid">
+          <label>Datumslogik</label><textarea data-bind="data_model.date_logic_notes" rows="3"></textarea>
+          <label>Anmerkungen</label><textarea data-bind="data_model.notes" rows="3"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ MEASURES ═══ -->
+      <section class="page" id="page-measures">
+        <h2>Measures (DAX)</h2>
+        <div id="measures-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('measures')">+ Measure hinzufügen</button>
+      </section>
+
+      <!-- ═══ BERICHTSSEITEN ═══ -->
+      <section class="page" id="page-report_pages">
+        <h2>Berichtsseiten & Visuals</h2>
+        <div id="report_pages-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('report_pages')">+ Seite hinzufügen</button>
+      </section>
+
+      <!-- ═══ GOVERNANCE ═══ -->
+      <section class="page" id="page-governance">
+        <h2>Governance</h2>
+        <div class="form-grid">
+          <label>Aktualisierungsplan</label><textarea data-bind="governance.refresh_schedule" rows="3"></textarea>
+          <label>Monitoring</label><textarea data-bind="governance.monitoring_notes" rows="3"></textarea>
+          <label>Row-Level Security</label><textarea data-bind="governance.rls_notes" rows="3"></textarea>
+          <label>Performance</label><textarea data-bind="governance.performance_notes" rows="3"></textarea>
+          <label>Annahmen</label><textarea data-bind="governance.assumptions" rows="3"></textarea>
+          <label>Einschränkungen</label><textarea data-bind="governance.limitations" rows="3"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ BERECHTIGUNGEN ═══ -->
+      <section class="page" id="page-permissions">
+        <h2>Berechtigungen</h2>
+        <p class="section-info">Dokumentation aller Zugriffsrechte: Wer hat welche Rechte, wo und warum? Umfasst Workspace-Rollen, RLS, Freigaben, Service Principals und individuelle Berechtigungszuweisungen.</p>
+
+        <div class="form-grid">
+          <label>Workspace-Rollen</label><textarea data-bind="permissions.workspace_roles" rows="3" placeholder="Admin: ..., Member: ..., Contributor: ..., Viewer: ..."></textarea>
+          <label>Row-Level Security (RLS)</label><textarea data-bind="permissions.rls_details" rows="3" placeholder="Welche RLS-Rollen existieren? Welche Filter?"></textarea>
+          <label>Freigabe & Sharing</label><textarea data-bind="permissions.sharing_permissions" rows="3" placeholder="Wer hat Zugriff per Freigabe? Welche Art der Freigabe?"></textarea>
+          <label>Datensensitivität</label><textarea data-bind="permissions.data_sensitivity" rows="2" placeholder="Vertraulichkeitsklasse, Sensitivitätslabel"></textarea>
+          <label>Erforderliche Rollen für Änderungen</label><textarea data-bind="permissions.required_roles_for_changes" rows="2"></textarea>
+          <label>Service Principal / App-Registrierung</label><textarea data-bind="permissions.service_principal" rows="2"></textarea>
+          <label>Zielgruppen-Zugriff</label><textarea data-bind="permissions.audience_access" rows="2" placeholder="Wer darf den Bericht sehen?"></textarea>
+          <label>App-Berechtigungen</label><textarea data-bind="permissions.app_permissions" rows="2" placeholder="Power BI App: Welche Gruppen/Benutzer?"></textarea>
+          <label>Datensatz-Berechtigungen</label><textarea data-bind="permissions.dataset_permissions" rows="2" placeholder="Build, Read, Write, Reshare etc."></textarea>
+          <label>Anmerkungen</label><textarea data-bind="permissions.notes" rows="2"></textarea>
+        </div>
+
+        <h3>Berechtigungseinträge (Wer → Was → Wo)</h3>
+        <p class="hint">Hier werden alle konkreten Berechtigungszuweisungen einzeln erfasst.</p>
+        <div id="perm-entries-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addPermEntry()">+ Berechtigungseintrag hinzufügen</button>
+      </section>
+
+      <!-- ═══ ABLAGESTRUKTUR ═══ -->
+      <section class="page" id="page-storage_structure">
+        <h2>Ablagestruktur</h2>
+        <p class="section-info">Wo liegt was? Dokumentation der Speicherorte, Workspaces, Repositories und Deployment-Pipelines.</p>
+        <div class="form-grid">
+          <label>PBIX-Speicherort</label><textarea data-bind="storage_structure.pbix_location" rows="2"></textarea>
+          <label>Power BI Workspace</label><input type="text" data-bind="storage_structure.workspace_name">
+          <label>SharePoint- / OneDrive-Pfad</label><input type="text" data-bind="storage_structure.sharepoint_path">
+          <label>Data Gateway</label><input type="text" data-bind="storage_structure.data_gateway">
+          <label>Backup-Strategie / Versionierung</label><textarea data-bind="storage_structure.backup_strategy" rows="3"></textarea>
+          <label>Deployment Pipeline</label><textarea data-bind="storage_structure.deployment_pipeline" rows="2" placeholder="Dev → Test → Prod"></textarea>
+          <label>Git-Repository</label><input type="text" data-bind="storage_structure.repo_url">
+          <label>Anmerkungen</label><textarea data-bind="storage_structure.notes" rows="2"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ NAMENSKONZEPT ═══ -->
+      <section class="page" id="page-naming_conventions">
+        <h2>Namenskonzept</h2>
+        <div class="form-grid">
+          <label>Allgemeine Regeln</label><textarea data-bind="naming_conventions.general_rules" rows="3"></textarea>
+          <label>Measures</label><textarea data-bind="naming_conventions.measures" rows="2"></textarea>
+          <label>Tabellen</label><textarea data-bind="naming_conventions.tables" rows="2"></textarea>
+          <label>Spalten</label><textarea data-bind="naming_conventions.columns" rows="2"></textarea>
+          <label>Berichtsseiten</label><textarea data-bind="naming_conventions.pages" rows="2"></textarea>
+          <label>Berichte / Dateien</label><textarea data-bind="naming_conventions.reports" rows="2"></textarea>
+          <label>Power Queries</label><textarea data-bind="naming_conventions.queries" rows="2"></textarea>
+          <label>Anmerkungen</label><textarea data-bind="naming_conventions.notes" rows="2"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ ÄNDERUNGSHINWEISE ═══ -->
+      <section class="page" id="page-change_guidance">
+        <h2>Änderungshinweise & Best Practices</h2>
+        <div class="form-grid">
+          <label>Vor Änderungen beachten</label><textarea data-bind="change_guidance.before_changes" rows="3"></textarea>
+          <label>Test-Checkliste</label><textarea data-bind="change_guidance.testing_checklist" rows="3"></textarea>
+          <label>Deployment-Schritte</label><textarea data-bind="change_guidance.deployment_steps" rows="3"></textarea>
+          <label>Rollback-Plan</label><textarea data-bind="change_guidance.rollback_plan" rows="3"></textarea>
+          <label>Ansprechpartner</label><textarea data-bind="change_guidance.contact_persons" rows="2"></textarea>
+          <label>Anmerkungen</label><textarea data-bind="change_guidance.notes" rows="2"></textarea>
+        </div>
+      </section>
+
+      <!-- ═══ ÄNDERUNGSPROTOKOLL ═══ -->
+      <section class="page" id="page-change_log">
+        <h2>Änderungsprotokoll</h2>
+        <div id="change_log-list" class="list-editor"></div>
+        <button class="btn btn-small" onclick="addListItem('change_log')">+ Eintrag hinzufügen</button>
+      </section>
+
+      <!-- ═══ VORSCHAU ═══ -->
+      <section class="page" id="page-preview">
+        <h2>Dokumentations-Vorschau</h2>
+        <div class="preview-controls">
+          <select id="preview-section">
+            <option value="index">Startseite</option>
+            <option value="overview">Übersicht</option>
+            <option value="kpis">KPIs</option>
+            <option value="data_sources">Datenquellen</option>
+            <option value="power_query">Power Query</option>
+            <option value="data_model">Datenmodell</option>
+            <option value="measures">Measures</option>
+            <option value="report_pages">Berichtsseiten</option>
+            <option value="governance">Governance</option>
+            <option value="assumptions">Annahmen</option>
+            <option value="change_log">Änderungsprotokoll</option>
+            <option value="permissions">Berechtigungen</option>
+            <option value="storage">Ablagestruktur</option>
+            <option value="naming">Namenskonzept</option>
+            <option value="change_guidance">Änderungshinweise</option>
+          </select>
+          <button class="btn btn-primary" onclick="loadPreview()">Vorschau laden</button>
+        </div>
+        <div class="preview-split">
+          <div class="preview-rendered" id="preview-html"></div>
+          <div class="preview-raw" id="preview-md"></div>
+        </div>
+      </section>
+
+      <!-- ═══ EXPORT ═══ -->
+      <section class="page" id="page-export">
+        <h2>Export – Modulare Dokumentation</h2>
+        <p class="section-info">Wähle die Bereiche aus, die in den Export einbezogen werden sollen. Nicht gewählte Bereiche werden übersprungen.</p>
+
+        <div class="export-sections">
+          <div class="section-toggle-group">
+            <label class="toggle-all">
+              <input type="checkbox" id="toggle-all-sections" checked onchange="toggleAllSections(this.checked)">
+              <strong>Alle Bereiche</strong>
+            </label>
+            <hr>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="overview" checked> 1. Übersicht</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="kpis" checked> 2. KPIs</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="data_sources" checked> 3. Datenquellen</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="power_query" checked> 4. Power Query</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="data_model" checked> 5. Datenmodell</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="measures" checked> 6. Measures</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="report_pages" checked> 7. Berichtsseiten</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="governance" checked> 8. Governance</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="assumptions" checked> 9. Annahmen</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="change_log" checked> 10. Änderungsprotokoll</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="permissions" checked> 11. Berechtigungen</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="storage" checked> 12. Ablagestruktur</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="naming" checked> 13. Namenskonzept</label>
+            <label class="section-toggle"><input type="checkbox" class="export-section" value="change_guidance" checked> 14. Änderungshinweise</label>
+          </div>
+        </div>
+
+        <div class="export-actions">
+          <button class="btn btn-primary btn-large" onclick="exportMarkdown()">📝 Markdown exportieren</button>
+          <button class="btn btn-accent btn-large" onclick="exportPDF()">📄 PDF exportieren</button>
+        </div>
+
+        <hr style="margin: 2rem 0; border-color: #30363d;">
+
+        <h2>🤖 AI-Anreicherung</h2>
+        <p class="section-info">
+          Exportiere die Berichts-Metadaten als JSON, lasse sie von einer KI (z.B. Claude Sonnet) mit
+          Beschreibungen anreichern und importiere das Ergebnis zurück.
+        </p>
+
+        <div class="export-actions" style="flex-wrap: wrap; gap: 0.75rem;">
+          <button class="btn btn-primary btn-large" onclick="aiExportJson()">🤖 AI-Metadaten (JSON) herunterladen</button>
+          <button class="btn btn-secondary btn-large" onclick="aiExportPrompt()">📋 AI-Prompt (Text) herunterladen</button>
+          <button class="btn btn-accent btn-large" onclick="showAiImportDialog()">📥 AI-angereicherte Daten importieren</button>
+        </div>
+
+        <details style="margin-top: 1.5rem;">
+          <summary style="cursor: pointer; color: #8b949e; font-size: 0.9rem;">ℹ️ So funktioniert der Workflow</summary>
+          <ol style="color: #8b949e; font-size: 0.9rem; line-height: 1.8; margin-top: 0.75rem;">
+            <li><strong>AI-Prompt herunterladen</strong> – Lade die Prompt-Textdatei herunter.</li>
+            <li><strong>In AI einfügen</strong> – Kopiere den gesamten Inhalt in Claude / ChatGPT.</li>
+            <li><strong>JSON-Antwort speichern</strong> – Die KI antwortet mit angereichertem JSON.</li>
+            <li><strong>Importieren</strong> – Klicke „AI-angereicherte Daten importieren" und füge das JSON ein.</li>
+          </ol>
+        </details>
+      </section>
+    </div>
+
+    <!-- ═══ Toast notification ═══ -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- ═══ Import Dialog ═══ -->
+    <div id="import-dialog" class="modal hidden">
+      <div class="modal-content">
+        <h3>Import-Optionen</h3>
+        <div class="form-grid">
+          <label>Merge-Modus</label>
+          <select id="import-merge-mode">
+            <option value="replace">Ersetzen (Replace)</option>
+            <option value="merge">Zusammenführen (Merge)</option>
+            <option value="append">Anfügen (Append)</option>
+          </select>
+          <label>Versteckte Tabellen überspringen</label>
+          <input type="checkbox" id="import-skip-hidden" checked>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="doImport()">Importieren</button>
+          <button class="btn btn-secondary" onclick="closeModal('import-dialog')">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ AI Import Dialog ═══ -->
+    <div id="ai-import-dialog" class="modal hidden">
+      <div class="modal-content" style="max-width: 640px;">
+        <h3>🤖 AI-angereicherte Daten importieren</h3>
+        <p style="color: #8b949e; font-size: 0.85rem; margin-bottom: 1rem;">
+          Füge das von der KI zurückgegebene JSON hier ein.
+          Es werden nur leere Beschreibungsfelder befüllt (bestehende bleiben erhalten).
+        </p>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+          <textarea id="ai-import-json" rows="14" placeholder='{"metadata": { ... }}' style="width:100%; font-family: monospace; font-size: 0.85rem; background: #0d1117; color: #e6edf3; border: 1px solid #30363d; border-radius: 6px; padding: 0.75rem; resize: vertical;"></textarea>
+        </div>
+        <div style="margin-top: 0.75rem;">
+          <label style="font-size: 0.85rem; color: #8b949e;">
+            <input type="checkbox" id="ai-import-overwrite">
+            Bestehende (nicht-leere) Beschreibungen überschreiben
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="doAiImport()">Importieren</button>
+          <button class="btn btn-secondary" onclick="closeModal('ai-import-dialog')">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1c2128',
+        primaryBorderColor: '#58a6ff',
+        primaryTextColor: '#e6edf3',
+        lineColor: '#58a6ff',
+        secondaryColor: '#161b22',
+        tertiaryColor: '#0d1117',
+      },
+    });
+  </script>
+  <script src="/static/app.js"></script>
+</body>
+</html>

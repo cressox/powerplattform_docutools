@@ -2,7 +2,17 @@
 
 | Name | Typ | Initialwert | Beschreibung | Gesetzt in | Verwendet in |
 |---|---|---|---|---|---|
-| vTitel | String | `@triggerBody()?['Title']` |  | Variable_initialisieren_-_Titel |  |
-| vTitel | String | `entfällt: @{triggerBody()?['Title']}` |  | Variable_festlegen_-Titel |  |
-| vTitel | String | `entfällt: @{triggerBody()?['Title']}` |  | Variable_festlegen_-Titel |  |
+| VZeitStempelStatusAbgeschlossen | String | `` |  | VZeitStempelStatusAbgeschlossen |  |
+| VZeitStempelAngebotErstellt | String | `` |  | VZeitStempelAngebotErstellt |  |
+| VEndDatum | String | `@{utcNow()}` |  | VEndDatum |  |
+| VTempCheckIfNull | String | `` |  | VTempCheckIfNull |  |
+| VZeitStempelStatusAbgeschlossen | String | `@items('Check_Status_Abgeschlossen')?['OData___zeit_stempel_status_abgeschlos']` |  | Setze_VDatumStatusAbgeschlossen |  |
+| VTempCheckIfNull | String | `@items('Check_Status_Abgeschlossen')?['OData___zeit_stempel_angebot_erstellt']` |  | Setze_VDatumAngebotErstellt |  |
+| VZeitStempelAngebotErstellt | String | `@{if(equals(variables('VTempCheckIfNull'), null), utcNow(), variables('VTempCheckIfNull'))}` |  | Variable_festlegen |  |
+| VTempCheckIfNull | String | `@items('Check_Status_Abgeschlossen')?['OData___zeit_stempel_angebot_erstellt']` |  | Setze_VDatumAngebotErstellt |  |
+| VZeitStempelAngebotErstellt | String | `@{if(equals(variables('VTempCheckIfNull'), null), utcNow(), variables('VTempCheckIfNull'))}` |  | Variable_festlegen |  |
+| VTempCheckIfNull | String | `@items('Check_Status_Abgeschlossen')?['OData___zeit_stempel_angebot_erstellt']` |  | Setze_VDatumAngebotErstellt |  |
+| VZeitStempelAngebotErstellt | String | `@{if(equals(variables('VTempCheckIfNull'), null), utcNow(), variables('VTempCheckIfNull'))}` |  | Variable_festlegen |  |
+| VTempCheckIfNull | String | `@items('Check_Status_Abgeschlossen')?['OData___zeit_stempel_angebot_erstellt']` |  | Setze_VDatumAngebotErstellt |  |
+| VZeitStempelAngebotErstellt | String | `@{if(equals(variables('VTempCheckIfNull'), null), utcNow(), variables('VTempCheckIfNull'))}` |  | Variable_festlegen |  |
 

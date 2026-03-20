@@ -274,6 +274,20 @@ class ChangeLogEntry:
 # ── J) Permissions / Berechtigungen ─────────────────────────────
 
 @dataclass
+class PermissionEntry:
+    """A single permission assignment: who has what access where."""
+    id: str = field(default_factory=_new_id)
+    who: str = ""       # Person, Gruppe, Service Principal
+    what: str = ""      # Rolle / Berechtigung
+    where: str = ""     # Workspace, Report, Dataset, etc.
+    notes: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "PermissionEntry":
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+
+@dataclass
 class Permissions:
     """Access rights, roles, and data sensitivity for the report."""
     workspace_roles: str = ""            # Workspace-Rollen (Admin, Member, Contributor, Viewer)
@@ -282,11 +296,18 @@ class Permissions:
     data_sensitivity: str = ""           # Datensensitivitaet / Klassifizierung
     required_roles_for_changes: str = "" # Rollen fuer Aenderungen am Bericht
     service_principal: str = ""          # Service Principal / App-Registrierung
+    audience_access: str = ""            # Zielgruppen-Zugriff
+    app_permissions: str = ""            # Power BI App Berechtigungen
+    dataset_permissions: str = ""        # Datensatz-Berechtigungen (Build, Read, etc.)
+    entries: List[PermissionEntry] = field(default_factory=list)
     notes: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> "Permissions":
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        entries = [PermissionEntry.from_dict(e) for e in d.pop("entries", [])]
+        obj = cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        obj.entries = entries
+        return obj
 
 
 # ── K) Storage Structure / Ablagestruktur ────────────────────────

@@ -1,14 +1,14 @@
-# HR Zeitkonten Report – Dokumentation
+# Power BI Report – Dokumentation
 
-> Übersicht über Zeitkonten (Aufbau, Abbau, Saldo) der Mitarbeitenden, aufgeschlüsselt nach ISO-Wochen, Abteilungen und Kostenstellen.
+
 
 | Feld | Wert |
 |---|---|
-| **Eigentümer** | Maria Schmidt |
-| **Autor** | Thomas Müller |
-| **Version** | 1.0.0 |
-| **Datum** | 2025-06-01 |
-| **Zielgruppe** | HR Business Partner, Teamleiter, Personalleitung |
+| **Eigentümer** |  |
+| **Autor** |  |
+| **Version** | 0.1.0 |
+| **Datum** | 2026-03-17 |
+| **Zielgruppe** |  |
 
 ## Inhaltsverzeichnis
 
@@ -22,6 +22,10 @@
 8. [Governance – Aktualisierung, Gateway, RLS](07_governance/refresh_gateway_rls.md)
 9. [Annahmen & Einschränkungen](07_governance/assumptions_limitations.md)
 10. [Änderungsprotokoll](08_change_log/change_log.md)
+11. [Berechtigungen](09_permissions/permissions.md)
+12. [Ablagestruktur](10_storage/storage.md)
+13. [Namenskonzept](11_naming/naming_conventions.md)
+14. [Änderungshinweise & Best Practices](12_change_guidance/change_guidance.md)
 
 ---
 *Generiert mit Power BI Documentation Generator*

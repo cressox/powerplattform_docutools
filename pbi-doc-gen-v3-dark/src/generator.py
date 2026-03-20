@@ -30,6 +30,136 @@ def _esc(text: str) -> str:
     return text.replace("|", "\\|").replace("\n", " ")
 
 
+def _build_table(headers: list[str], rows: list[list[str]]) -> list[str]:
+    """Build a Markdown table, omitting columns that are empty in every row."""
+    if not rows:
+        return []
+    keep = [
+        ci for ci in range(len(headers))
+        if any((row[ci] if ci < len(row) else "").strip() for row in rows)
+    ]
+    if not keep:
+        return []
+    hdr = "| " + " | ".join(headers[ci] for ci in keep) + " |"
+    sep = "|" + "|".join("---" for _ in keep) + "|"
+    result = [hdr, sep]
+    for row in rows:
+        result.append("| " + " | ".join((row[ci] if ci < len(row) else "") for ci in keep) + " |")
+    return result
+
+
+def _safe_mermaid_id(name: str) -> str:
+    """Make a table/column name safe for Mermaid identifiers (ASCII only)."""
+    # Replace common non-ASCII chars
+    s = name
+    for old, new in [("ä", "ae"), ("ö", "oe"), ("ü", "ue"), ("ß", "ss"),
+                     ("Ä", "Ae"), ("Ö", "Oe"), ("Ü", "Ue")]:
+        s = s.replace(old, new)
+    # Replace spaces and special chars with underscores
+    s = s.replace(" ", "_").replace("-", "_").replace(".", "_")
+    # Keep only ASCII alphanumeric and underscore
+    s = "".join(c for c in s if c.isascii() and (c.isalnum() or c == "_"))
+    # Strip leading underscores – Mermaid requires identifiers to start with a letter
+    s = s.lstrip("_")
+    # If empty or starts with a digit, prefix with 'T'
+    if not s or s[0].isdigit():
+        s = "T" + s
+    # Avoid Mermaid reserved constraint keywords used as bare names
+    if s.upper() in ("PK", "FK", "UK"):
+        s = s + "_col"
+    return s
+
+
+def _mermaid_cardinality(card: str) -> str:
+    """Convert cardinality to Mermaid ER notation."""
+    card_upper = card.upper().replace(" ", "")
+    mapping = {
+        "1:1": "||--||",
+        "1:N": "||--o{",
+        "N:1": "}o--||",
+        "N:M": "}o--o{",
+        "ONE-TO-ONE": "||--||",
+        "ONE-TO-MANY": "||--o{",
+        "MANYTOONE": "}o--||",
+        "MANYTOMANY": "}o--o{",
+    }
+    return mapping.get(card_upper, "||--o{")
+
+
+def _gen_mermaid_er(dm) -> list:
+    """Generate a Mermaid ER diagram for the data model."""
+    lines = [
+        "## Datenmodell-Diagramm",
+        "",
+        "```mermaid",
+        "erDiagram",
+    ]
+
+    # Collect table info: columns from keys/description
+    table_info = {}
+    for t in dm.tables:
+        safe_id = _safe_mermaid_id(t.name)
+        cols = []
+        # Extract key columns
+        if t.keys:
+            key_text = t.keys.replace("PK:", "").replace("FK:", "").strip()
+            for k in key_text.split(","):
+                k = k.strip()
+                if k:
+                    cols.append(("PK", _safe_mermaid_id(k)))
+        # Extract first few columns from description
+        if t.description and "Spalten:" in t.description:
+            col_part = t.description.split("Spalten:")[-1].strip()
+            # Remove "(+N weitere)" suffix
+            col_part = col_part.split("(+")[0].strip()
+            for c in col_part.split(","):
+                c = c.strip()
+                if c:
+                    safe_col = _safe_mermaid_id(c)
+                    if not any(existing[1] == safe_col for existing in cols):
+                        cols.append(("", safe_col))
+
+        table_info[t.name] = (safe_id, cols)
+
+    # Entity definitions
+    for tname, (safe_id, cols) in table_info.items():
+        table_type = ""
+        for t in dm.tables:
+            if t.name == tname:
+                table_type = t.table_type
+                break
+        if cols:
+            lines.append(f"    {safe_id} {{")
+            for kind, col_name in cols[:8]:  # Limit to 8 columns for readability
+                if kind == "PK":
+                    lines.append(f"        string {col_name} PK")
+                else:
+                    lines.append(f"        string {col_name}")
+            lines.append("    }")
+        else:
+            lines.append(f"    {safe_id} {{")
+            lines.append(f"        string id PK")
+            lines.append("    }")
+
+    # Relationships – only between tables that are defined as entities
+    known_ids = {safe_id for (safe_id, _cols) in table_info.values()}
+    for r in dm.relationships:
+        from_id = _safe_mermaid_id(r.from_table)
+        to_id = _safe_mermaid_id(r.to_table)
+        if from_id not in known_ids or to_id not in known_ids:
+            continue
+        rel = _mermaid_cardinality(r.cardinality)
+        label = f"{r.from_column} - {r.to_column}"
+        lines.append(f"    {from_id} {rel} {to_id} : \"{label}\"")
+
+    # If we have tables but no relationships, show them as isolated entities
+    if dm.tables and not dm.relationships:
+        lines.append("    %% Keine Beziehungen dokumentiert")
+
+    lines += ["```", ""]
+    return lines
+
+
 # ===================================================================
 # Individual generators
 # ===================================================================
@@ -116,12 +246,10 @@ def gen_kpis(p: Project) -> str:
         lines.append("*Noch keine KPIs dokumentiert.*\n")
         return "\n".join(lines)
 
-    lines += [
-        "| # | Name | Granularität | Beschreibung |",
-        "|---|---|---|---|",
-    ]
+    rows = []
     for i, k in enumerate(p.kpis, 1):
-        lines.append(f"| {i} | {_esc(k.name)} | {_esc(k.granularity)} | {_esc(k.business_description)} |")
+        rows.append([str(i), _esc(k.name), _esc(k.granularity), _esc(k.business_description)])
+    lines += _build_table(["#", "Name", "Granularität", "Beschreibung"], rows)
 
     lines.append("")
     for k in p.kpis:
@@ -153,16 +281,12 @@ def gen_data_sources(p: Project) -> str:
         lines.append("*Noch keine Datenquellen dokumentiert.*\n")
         return "\n".join(lines)
 
-    lines += [
-        "| Name | Typ | Verbindung | Aktualisierung | Gateway |",
-        "|---|---|---|---|---|",
-    ]
+    rows = []
     for s in p.data_sources:
-        gw = s.gateway_name if s.gateway_required else "–"
-        lines.append(
-            f"| {_esc(s.name)} | {_esc(s.source_type)} | {_esc(s.connection_info)} "
-            f"| {_esc(s.refresh_cadence)} | {gw} |"
-        )
+        gw = s.gateway_name if s.gateway_required else ""
+        rows.append([_esc(s.name), _esc(s.source_type), _esc(s.connection_info),
+                      _esc(s.refresh_cadence), gw])
+    lines += _build_table(["Name", "Typ", "Verbindung", "Aktualisierung", "Gateway"], rows)
 
     lines.append("")
     for s in p.data_sources:
@@ -219,29 +343,25 @@ def gen_data_model(p: Project) -> str:
     dm = p.data_model
     lines = ["# Datenmodell", ""]
 
+    # ── Mermaid ER-Diagramm ────────────────────────
+    if dm.tables or dm.relationships:
+        lines += _gen_mermaid_er(dm)
+
     if dm.tables:
-        lines += [
-            "## Tabellen",
-            "",
-            "| Tabelle | Typ | Schlüssel | Beschreibung |",
-            "|---|---|---|---|",
-        ]
+        lines += ["## Tabellen", ""]
+        rows = []
         for t in dm.tables:
-            lines.append(f"| {_esc(t.name)} | {_esc(t.table_type)} | {_esc(t.keys)} | {_esc(t.description)} |")
+            rows.append([_esc(t.name), _esc(t.table_type), _esc(t.keys), _esc(t.description)])
+        lines += _build_table(["Tabelle", "Typ", "Schlüssel", "Beschreibung"], rows)
         lines.append("")
 
     if dm.relationships:
-        lines += [
-            "## Beziehungen",
-            "",
-            "| Von (Tabelle.Spalte) | Nach (Tabelle.Spalte) | Kardinalität | Filterrichtung |",
-            "|---|---|---|---|",
-        ]
+        lines += ["## Beziehungen", ""]
+        rows = []
         for r in dm.relationships:
-            lines.append(
-                f"| {r.from_table}.{r.from_column} | {r.to_table}.{r.to_column} "
-                f"| {r.cardinality} | {r.filter_direction} |"
-            )
+            rows.append([f"{r.from_table}.{r.from_column}", f"{r.to_table}.{r.to_column}",
+                          r.cardinality, r.filter_direction])
+        lines += _build_table(["Von (Tabelle.Spalte)", "Nach (Tabelle.Spalte)", "Kardinalität", "Filterrichtung"], rows)
         lines.append("")
 
     if dm.date_logic_notes:
@@ -268,12 +388,11 @@ def gen_measures(p: Project) -> str:
         lines.append("*Noch keine Measures dokumentiert.*\n")
         return "\n".join(lines)
 
-    lines += [
-        "| # | Name | Ordner | Beschreibung |",
-        "|---|---|---|---|",
-    ]
+    rows = []
     for i, ms in enumerate(p.measures, 1):
-        lines.append(f"| {i} | [{_esc(ms.name)}](#{ms.name.lower().replace(' ', '-')}) | {_esc(ms.display_folder)} | {_esc(ms.description)} |")
+        rows.append([str(i), f"[{_esc(ms.name)}](#{ms.name.lower().replace(' ', '-')})",
+                      _esc(ms.display_folder), _esc(ms.description)])
+    lines += _build_table(["#", "Name", "Ordner", "Beschreibung"], rows)
     lines.append("")
 
     for ms in p.measures:
@@ -315,14 +434,11 @@ def gen_pages_visuals(p: Project) -> str:
             "",
         ]
         if pg.visuals:
-            lines += [
-                "### Visuals",
-                "",
-                "| Visual | Beschreibung |",
-                "|---|---|",
-            ]
+            lines += ["### Visuals", ""]
+            rows = []
             for v in pg.visuals:
-                lines.append(f"| {_esc(v.name)} | {_esc(v.description)} |")
+                rows.append([_esc(v.name), _esc(v.description)])
+            lines += _build_table(["Visual", "Beschreibung"], rows)
             lines.append("")
         if pg.slicers_filters:
             lines += [f"**Slicer / Filter:** {pg.slicers_filters}", ""]
@@ -379,15 +495,11 @@ def gen_change_log(p: Project) -> str:
         lines.append("*Noch keine Einträge.*\n")
         return "\n".join(lines)
 
-    lines += [
-        "| Version | Datum | Beschreibung | Autor | Auswirkung | Ticket |",
-        "|---|---|---|---|---|---|",
-    ]
+    rows = []
     for c in p.change_log:
-        lines.append(
-            f"| {_esc(c.version)} | {c.date} | {_esc(c.description)} "
-            f"| {_esc(c.author)} | {_esc(c.impact)} | {_esc(c.ticket_link)} |"
-        )
+        rows.append([_esc(c.version), c.date, _esc(c.description),
+                      _esc(c.author), _esc(c.impact), _esc(c.ticket_link)])
+    lines += _build_table(["Version", "Datum", "Beschreibung", "Autor", "Auswirkung", "Ticket"], rows)
     lines.append("")
     return "\n".join(lines)
 
@@ -417,6 +529,18 @@ def gen_permissions(p: Project) -> str:
         "",
         perm.sharing_permissions or "*Nicht dokumentiert.*",
         "",
+        "## Zielgruppen-Zugriff",
+        "",
+        perm.audience_access or "*Nicht dokumentiert.*",
+        "",
+        "## App-Berechtigungen",
+        "",
+        perm.app_permissions or "*Nicht dokumentiert.*",
+        "",
+        "## Datensatz-Berechtigungen",
+        "",
+        perm.dataset_permissions or "*Nicht dokumentiert.*",
+        "",
         "## Datensensitivität / Klassifizierung",
         "",
         perm.data_sensitivity or "*Nicht dokumentiert.*",
@@ -430,6 +554,16 @@ def gen_permissions(p: Project) -> str:
         perm.service_principal or "*Nicht konfiguriert.*",
         "",
     ]
+    if perm.entries:
+        lines += [
+            "## Berechtigungseinträge (Wer → Was → Wo)",
+            "",
+        ]
+        rows = []
+        for e in perm.entries:
+            rows.append([_esc(e.who), _esc(e.what), _esc(e.where), _esc(e.notes)])
+        lines += _build_table(["Wer", "Was", "Wo", "Anmerkung"], rows)
+        lines.append("")
     if perm.notes:
         lines += ["## Anmerkungen", "", perm.notes, ""]
     return "\n".join(lines)
